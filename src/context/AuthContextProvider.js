@@ -1,71 +1,66 @@
-import React, { useContext, createContext, useState } from "react";
-import { auth, GoogleProvider } from "firebase/auth";
-import { googleProvider } from "../utils/firebaseUtil";
+import React, { useContext, createContext , useState, useEffect } from "react";
+import { auth, googleProvider } from "../helpers/firebase";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 
-//! Create contect for authentication data
-const AuthContext = createContext();
+const AuthContext = React.createContext();
 
-//! define a fuct to get data from Auth context
 export function useAuth() {
   return useContext(AuthContext);
 }
 
-const AuthContextProvider = ({ children }) => {
+export function AuthContextProvider({ children }) {
   const [currentUser, setCurrentUser] = useState();
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setCurrentUser(user);
-      setLoading(false);
-    });
-    return unsubscribe;
-  }, []);
-
   function signup(email, password) {
-    return auth.createUserWithEmailAndPassword(email, password);
+    return createUserWithEmailAndPassword(auth, email, password);
   }
 
   function login(email, password) {
-    return auth.signInWithEmailAndPassword(email, password);
+    return signInWithEmailAndPassword(auth, email, password);
   }
 
-  function logout(email, password) {
-    return auth.signOut();
+  function logout() {
+    signOut(auth);
   }
 
   function loginWithGoogle() {
-    googleProvider.getCustomParameters({ prompt: "select_account" });
-    auth.signInWithPopup(googleProvider);
+    googleProvider.setCustomParameters({ prompt: "select_account" });
+    signInWithPopup(auth, googleProvider)
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 
-  function resetPassword(email) {
-    return auth.sendPasswordResetEmail(email);
-  }
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setLoading(false);
+    });
 
-  function updateEmail(email) {
-    return currentUser.updateEmail(email);
-  }
+    return unsubscribe;
+  }, []);
 
-  function updatePassword(password) {
-    return currentUser.updatePassword(password);
-  }
-
-  const values = {
+  const value = {
+    currentUser,
     signup,
     login,
     logout,
-    resetPassword,
-    updatePassword,
-    updateEmail,
     loginWithGoogle,
   };
 
   return (
-    <AuthContext.Provider value={values}>
+    <AuthContext.Provider value={value}>
       {!loading && children}
     </AuthContext.Provider>
   );
-};
-
-export default AuthContextProvider;
+}
