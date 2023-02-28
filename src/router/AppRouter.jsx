@@ -1,16 +1,29 @@
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import Navbar from "../components/Navbar.jsx";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "../components/Navbar";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import Dashboard from "../pages/Dashboard";
+import Profile from "../pages/Profile";
+import NewBlog from "../pages/NewBlog";
+import UpdateBlog from "../pages/UpdateBlog";
+import Detail from "../pages/Detail";
+import PrivateRouter from "./PrivateRouter";
 
 const AppRouter = () => {
   return (
     <Router>
       <Navbar />
-      <Switch>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Switch>
+      <Routes>
+        <Route path="/login" component={<Login />} />
+        <Route path="/register" component={<Register />} />
+        <Route path="/" exact component={<Dashboard />} />
+
+        <PrivateRouter path="/profile" component={<Profile />} />
+        <PrivateRouter path="/new-blog" component={<NewBlog />} />
+        <PrivateRouter path="/update-blog/:id" component={<UpdateBlog />} />
+        <PrivateRouter path="/detail" component={<Detail />} />
+      </Routes>
     </Router>
   );
 };
